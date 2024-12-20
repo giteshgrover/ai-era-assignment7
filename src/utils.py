@@ -25,12 +25,11 @@ def get_device():
 
     return device
 
-def transform_data_to_numpy(dataset):
-    exp_data = dataset.train_data
-    exp_data = dataset.transform(exp_data.numpy())
+def transform_data_to_numpy(dataset, data):
+    exp_data = dataset.transform(data.numpy())
     print('[Train]')
-    print(' - Numpy Shape:', exp.train_data.cpu().numpy().shape)
-    print(' - Tensor Shape:', exp.train_data.size())
+    print(' - Numpy Shape:', exp_data.cpu().numpy().shape)
+    print(' - Tensor Shape:', exp_data.size())
     print(' - min:', torch.min(exp_data))
     print(' - max:', torch.max(exp_data))
     print(' - mean:', torch.mean(exp_data))
