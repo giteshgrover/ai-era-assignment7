@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.optim.lr_scheduler import StepLR
 from torchvision import datasets, transforms
-from model import MNISTModel
+from model import Model_1, Model_2, Model_3, Model_4
 from datetime import datetime
 from utils import get_device, transform_data_to_numpy
 from torchsummary import summary
@@ -71,19 +71,19 @@ def train_and_test_model():
     
     # Initialize model
     print("[STEP 2/5] Initializing model...")
-    model = MNISTModel().to(device)
+    model = Model_4().to(device)
     # Print model summary
     model.to('cpu')
     summary(model, input_size=(1, 28, 28))
     model.to(device)
     
-    # optimizer = optim.Adam(model.parameters(), lr=0.001)
-    optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     # Learning rate StepLR (step size was chosen based on the observation and total num of echos). We will replace this with a better learning approach
-    scheduler = StepLR(optimizer, step_size=6, gamma=0.1) 
+    # scheduler = StepLR(optimizer, step_size=6, gamma=0.1) 
 
     # Training loop
-    epochs = 1
+    epochs = 15
     print("[STEP 3/5] Starting training and Testing...")
     start_time = time.time()
     for epoch in range(epochs):
@@ -92,8 +92,8 @@ def train_and_test_model():
         training_time = time.time() - start_time
         print(f"[INFO] Training of Epoch {epoch+1} completed in {training_time:.2f} seconds")
         print("[INFO] Evaluating model...")
-        scheduler.step()
-        print("Current learning rate:", scheduler.get_last_lr()[0])
+        # scheduler.step()
+        # print("Current learning rate:", scheduler.get_last_lr()[0])
         test_model(model, test_loader, device)
 
     print("\n[STEP 4/5] Evaluating model against validation...")
@@ -102,7 +102,7 @@ def train_and_test_model():
     # Save model with timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     save_path = f'model_mnist_{timestamp}.pth'
-    torch.save(model.state_dict(), save_path)
+    # torch.save(model.state_dict(), save_path)
 
     # Plot the training and testing losses
     print("\n[STEP 5/5] Plot the training and testing losses...")

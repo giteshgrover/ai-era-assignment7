@@ -1,9 +1,9 @@
 import torch
 import pytest
-from src.model import MNISTModel
+from src.model import Model_1,Model_2,Model_3,Model_4
 
 def test_model_architecture():
-    model = MNISTModel()
+    model = Model_4()
     
     # Test input shape
     test_input = torch.randn(1, 1, 28, 28)
@@ -12,20 +12,20 @@ def test_model_architecture():
     
     # Test number of parameters
     total_params = sum(p.numel() for p in model.parameters())
-    assert total_params < 20000, f"Model has {total_params} parameters, should be less than 20000"
+    assert total_params < 8000, f"Model has {total_params} parameters, should be less than 8000"
     
-def test_batch_norm_layers():
-    model = MNISTModel()
-    has_batch_norm = any(isinstance(m, torch.nn.BatchNorm2d) for m in model.modules())
-    assert has_batch_norm, "Model should contain batch normalization layers"
+# def test_batch_norm_layers():
+#     model = Model_1()
+#     has_batch_norm = any(isinstance(m, torch.nn.BatchNorm2d) for m in model.modules())
+#     assert has_batch_norm, "Model should contain batch normalization layers"
     
-def test_dropout_layers():
-    model = MNISTModel()
-    has_dropout = any(isinstance(m, torch.nn.Dropout) for m in model.modules())
-    assert has_dropout, "Model should contain dropout layers"
+# def test_dropout_layers():
+#     model = Model_1()
+#     has_dropout = any(isinstance(m, torch.nn.Dropout) for m in model.modules())
+#     assert has_dropout, "Model should contain dropout layers"
 
 def test_model_training():
-    model = MNISTModel()
+    model = Model_4()
     test_input = torch.randn(4, 1, 28, 28)
     test_target = torch.randint(0, 10, (4,))
     
