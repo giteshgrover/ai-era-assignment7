@@ -87,13 +87,14 @@ def train_and_test_model():
     total_steps = epochs * steps_per_epoch
     
     # Replace StepLR with OneCycleLR
+    # scheduler = StepLR(optimizer, step_size=4, gamma=0.1)    
     scheduler = optim.lr_scheduler.OneCycleLR(
         optimizer,
         max_lr=0.1,              # Maximum learning rate
         total_steps=total_steps,
         pct_start=0.3,           # Peak at 30% of training
         div_factor=10,           # Initial lr = max_lr/div_factor
-        final_div_factor=1000,   # Final lr = max_lr/final_div_factor
+        final_div_factor=10000,   # Final lr = max_lr/final_div_factor
         anneal_strategy='cos'    # Cosine annealing
     )
 
@@ -105,6 +106,7 @@ def train_and_test_model():
         training_time = time.time() - start_time
         print(f"[INFO] Training of Epoch {epoch+1} completed in {training_time:.2f} seconds")
         print("[INFO] Evaluating model...")
+        # scheduler.step()
         print("Current learning rate:", scheduler.get_last_lr()[0])
         test_model(model, test_loader, device)
 
