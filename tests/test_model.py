@@ -1,9 +1,9 @@
 import torch
 import pytest
-from src.model import Model_1,Model_2,Model_3,Model_4
+from src.model import Model_1,Model_2,Model_3,Model_4,Model_5
 
 def test_model_architecture():
-    model = Model_4()
+    model = Model_5()
     
     # Test input shape
     test_input = torch.randn(1, 1, 28, 28)
@@ -25,7 +25,7 @@ def test_model_architecture():
 #     assert has_dropout, "Model should contain dropout layers"
 
 def test_model_training():
-    model = Model_4()
+    model = Model_5()
     test_input = torch.randn(4, 1, 28, 28)
     test_target = torch.randint(0, 10, (4,))
     

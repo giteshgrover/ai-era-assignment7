@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.optim.lr_scheduler import StepLR
 from torchvision import datasets, transforms
-from model import Model_1, Model_2, Model_3, Model_4
+from model import Model_1, Model_2, Model_3, Model_4, Model_5
 from datetime import datetime
 from utils import get_device, transform_data_to_numpy
 from torchsummary import summary
@@ -29,7 +29,7 @@ def train_and_test_model():
     # First calculate the mean and std of the data needed for normalization
     mean = 0.1307 # Precalculated mean of the MNIST dataset
     std = 0.3081 # Precalculated std of the MNIST dataset
-    visualize_data = True
+    visualize_data = False
     # If mean or std is not provided, calculate it from the data
     if not mean or not std or visualize_data:
         dataset = datasets.MNIST('./data', train=True, download=True, transform=transforms.ToTensor())
@@ -40,6 +40,7 @@ def train_and_test_model():
             printSampleImages(dataset)
 
     train_transform = transforms.Compose([
+        transforms.RandomRotation((-7.0, 7.0), fill=(1,)),
         transforms.ToTensor(),
         transforms.Normalize((mean,), (std,))
     ])
@@ -71,29 +72,40 @@ def train_and_test_model():
     
     # Initialize model
     print("[STEP 2/5] Initializing model...")
-    model = Model_4().to(device)
+    model = Model_5().to(device)
     # Print model summary
     model.to('cpu')
     summary(model, input_size=(1, 28, 28))
     model.to(device)
     
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-    # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-    # Learning rate StepLR (step size was chosen based on the observation and total num of echos). We will replace this with a better learning approach
-    # scheduler = StepLR(optimizer, step_size=6, gamma=0.1) 
-
-    # Training loop
+    # optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
+    
+    # Calculate total steps for OneCycleLR
     epochs = 15
+    steps_per_epoch = len(train_loader)
+    total_steps = epochs * steps_per_epoch
+    
+    # Replace StepLR with OneCycleLR
+    scheduler = optim.lr_scheduler.OneCycleLR(
+        optimizer,
+        max_lr=0.1,              # Maximum learning rate
+        total_steps=total_steps,
+        pct_start=0.3,           # Peak at 30% of training
+        div_factor=10,           # Initial lr = max_lr/div_factor
+        final_div_factor=1000,   # Final lr = max_lr/final_div_factor
+        anneal_strategy='cos'    # Cosine annealing
+    )
+
     print("[STEP 3/5] Starting training and Testing...")
     start_time = time.time()
     for epoch in range(epochs):
         print(f"\n[INFO] Training of Epoch {epoch+1} started...")
-        train_model(model, train_loader, optimizer, device, epoch)
+        train_model(model, train_loader, optimizer, scheduler, device, epoch)
         training_time = time.time() - start_time
         print(f"[INFO] Training of Epoch {epoch+1} completed in {training_time:.2f} seconds")
         print("[INFO] Evaluating model...")
-        # scheduler.step()
-        # print("Current learning rate:", scheduler.get_last_lr()[0])
+        print("Current learning rate:", scheduler.get_last_lr()[0])
         test_model(model, test_loader, device)
 
     print("\n[STEP 4/5] Evaluating model against validation...")
@@ -135,7 +147,7 @@ def printLossAndAccuracy(train_losses, test_losses, train_accuracies, test_accur
     axs[1, 1].set_title("Test Accuracy")
     plt.show()
 #Train this epoch
-def train_model(model, train_loader, optimizer, device, epoch):
+def train_model(model, train_loader, optimizer, scheduler, device, epoch):
     model.train()
     pbar = tqdm(train_loader, desc=f'Epoch {epoch+1}')
 
@@ -159,6 +171,7 @@ def train_model(model, train_loader, optimizer, device, epoch):
         # Backpropagation (compute the gradient of the loss with respect to the model parameters and update the parameters)
         loss.backward()
         optimizer.step()
+        scheduler.step()
 
         # Update running loss and accuracy
         running_loss += loss.item()
