@@ -1,17 +1,3 @@
-# Total params: 7,778
-# Current learning rate: 0.002219875127778076
-# Test Accuracy: 99.24%
-
-# [INFO] Training of Epoch 15 started...
-# Epoch 15: 100%|███████████████████████████████████████████████████████████████████| 391/391 [00:04<00:00, 82.19it/s, loss=0.037, accuracy=98.80%]
-# [INFO] Training of Epoch 15 completed in 95.69 seconds
-# [INFO] Evaluating model...
-# Current learning rate: 1.0014637408332753e-05
-# Test Accuracy: 99.25%
-
-# [STEP 4/5] Evaluating model against validation...
-# Test Accuracy: 99.42%
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -331,15 +317,14 @@ class Model_4(nn.Module):
         x = F.log_softmax(x, dim=1)
         return x 
     
-# Target: Reduce the number of parameters to less than 8k still maintaining the gap between training and test accuracy
+# Target: Increase the accuracy while still keeping the parameters under 8k. Keeping the gap between training and test accuracy low
 # Results:
-## Parameters: 7k
-## Best Training Accuracy: 97.73%
-## Best Test Accuracy: 97.39%
+## Parameters: 7,778
+## Best Training Accuracy: 98.75%
+## Best Test Accuracy: 99.44% (validation accuracy: 99.50%)
 # Analysys:
 ## Parameters are less than 8k
-## Good model with slowly increasing accuracy each epoch with a decent gap between training and test accuracy
-## Can be trained further to get better results
+## Good model with high accuracy and low gap between training and test accuracy
 class Model_5(nn.Module):
     def __init__(self):
         super(Model_5, self).__init__()

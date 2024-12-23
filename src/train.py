@@ -47,30 +47,30 @@ def train_and_test_model():
     ])
     test_transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize((mean,), (std,))
+        transforms.Normalize((0.1325,), (0.3105,))
     ])
 
-        # Create indices for the first 50000 samples
-    # train_indices = range(50000)
-    # validation_indices = range(50000, 59000)
+    # Create indices for the first 50000 samples
+    train_indices = range(59000)
+    validation_indices = range(59000, 60000)
     
-    # train_dataset = Subset(datasets.MNIST('./data', train=True, download=True, transform=train_transform ), train_indices)
+    train_dataset = Subset(datasets.MNIST('./data', train=True, download=True, transform=train_transform ), train_indices)
     train_dataset = datasets.MNIST('./data', train=True, download=True, transform=train_transform )
     test_dataset = datasets.MNIST('./data', train=False, download=True, transform=test_transform)
-    # validation_dataset = Subset(datasets.MNIST('./data', train=True, download=True, transform=test_transform), validation_indices)
+    validation_dataset = Subset(datasets.MNIST('./data', train=True, download=True, transform=test_transform), validation_indices)
 
     # dataloader arguments - something you'll fetch these from cmdprmt
     dataloader_args = dict(shuffle=True, batch_size=128, num_workers=4, pin_memory=True) if (device.type == 'cuda' or device.type == 'mps') else dict(shuffle=True, batch_size=64)
     print(f"[INFO] Dataloader arguments: {dataloader_args}")
     train_loader = torch.utils.data.DataLoader(train_dataset, **dataloader_args)
     test_loader = torch.utils.data.DataLoader(test_dataset, **dataloader_args)
-    # validation_loader = torch.utils.data.DataLoader(validation_dataset, **dataloader_args)
+    validation_loader = torch.utils.data.DataLoader(validation_dataset, **dataloader_args)
 
     print(f"[INFO] Total training batches: {len(train_loader)}")
     print(f"[INFO] Batch size: {dataloader_args['batch_size']}")
     print(f"[INFO] Training samples: {len(train_dataset)}")
     print(f"[INFO] Test samples: {len(test_dataset)}\n")
-    # print(f"[INFO] Validation samples: {len(validation_dataset)}\n")
+    print(f"[INFO] Validation samples: {len(validation_dataset)}\n")
     
     # Initialize model
     print("[STEP 2/5] Initializing model...")
@@ -114,8 +114,8 @@ def train_and_test_model():
         print("Current learning rate:", scheduler.get_last_lr()[0])
         test_model(model, test_loader, device)
 
-    # print("\n[STEP 4/5] Evaluating model against validation...")
-    # test_model(model, validation_loader, device)
+    print("\n[STEP 4/5] Evaluating model against validation...")
+    test_model(model, validation_loader, device)
     
     # Save model with timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
