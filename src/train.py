@@ -5,7 +5,7 @@ from torch.optim.lr_scheduler import StepLR
 from torchvision import datasets, transforms
 from model import Model_1, Model_2, Model_3, Model_4, Model_5
 from datetime import datetime
-from utils import get_device, transform_data_to_numpy
+from utils import get_device, transform_data_to_numpy, printSampleImages
 from torchsummary import summary
 import os
 from tqdm import tqdm
@@ -38,9 +38,10 @@ def train_and_test_model():
         std = torch.std(data_numpy)
         if visualize_data:
             printSampleImages(dataset)
+            return
 
     train_transform = transforms.Compose([
-        transforms.RandomRotation((-7.0, 7.0), fill=(1,)),
+        transforms.RandomRotation((-10.0, 10.0), fill=(0,)),
         transforms.ToTensor(),
         transforms.Normalize((mean,), (std,))
     ])
@@ -50,25 +51,26 @@ def train_and_test_model():
     ])
 
         # Create indices for the first 50000 samples
-    train_indices = range(50000)
-    test_indices = range(50000, 60000)
+    # train_indices = range(50000)
+    # validation_indices = range(50000, 59000)
     
-    train_dataset = Subset(datasets.MNIST('./data', train=True, download=True, transform=train_transform ), train_indices)
-    test_dataset = Subset(datasets.MNIST('./data', train=True, download=True, transform=test_transform), test_indices)
-    validation_dataset = datasets.MNIST('./data', train=False, download=True, transform=test_transform)
+    # train_dataset = Subset(datasets.MNIST('./data', train=True, download=True, transform=train_transform ), train_indices)
+    train_dataset = datasets.MNIST('./data', train=True, download=True, transform=train_transform )
+    test_dataset = datasets.MNIST('./data', train=False, download=True, transform=test_transform)
+    # validation_dataset = Subset(datasets.MNIST('./data', train=True, download=True, transform=test_transform), validation_indices)
 
     # dataloader arguments - something you'll fetch these from cmdprmt
     dataloader_args = dict(shuffle=True, batch_size=128, num_workers=4, pin_memory=True) if (device.type == 'cuda' or device.type == 'mps') else dict(shuffle=True, batch_size=64)
     print(f"[INFO] Dataloader arguments: {dataloader_args}")
     train_loader = torch.utils.data.DataLoader(train_dataset, **dataloader_args)
     test_loader = torch.utils.data.DataLoader(test_dataset, **dataloader_args)
-    validation_loader = torch.utils.data.DataLoader(validation_dataset, **dataloader_args)
+    # validation_loader = torch.utils.data.DataLoader(validation_dataset, **dataloader_args)
 
     print(f"[INFO] Total training batches: {len(train_loader)}")
     print(f"[INFO] Batch size: {dataloader_args['batch_size']}")
     print(f"[INFO] Training samples: {len(train_dataset)}")
     print(f"[INFO] Test samples: {len(test_dataset)}\n")
-    print(f"[INFO] Validation samples: {len(validation_dataset)}\n")
+    # print(f"[INFO] Validation samples: {len(validation_dataset)}\n")
     
     # Initialize model
     print("[STEP 2/5] Initializing model...")
@@ -88,15 +90,16 @@ def train_and_test_model():
     
     # Replace StepLR with OneCycleLR
     # scheduler = StepLR(optimizer, step_size=4, gamma=0.1)    
-    scheduler = optim.lr_scheduler.OneCycleLR(
-        optimizer,
-        max_lr=0.1,              # Maximum learning rate
-        total_steps=total_steps,
-        pct_start=0.3,           # Peak at 30% of training
-        div_factor=10,           # Initial lr = max_lr/div_factor
-        final_div_factor=10000,   # Final lr = max_lr/final_div_factor
-        anneal_strategy='cos'    # Cosine annealing
-    )
+    # scheduler = optim.lr_scheduler.OneCycleLR(
+    #     optimizer,
+    #     max_lr=0.1,              # Maximum learning rate
+    #     total_steps=total_steps,
+    #     pct_start=0.3,           # Peak at 30% of training
+    #     div_factor=10,           # Initial lr = max_lr/div_factor
+    #     final_div_factor=10000,   # Final lr = max_lr/final_div_factor
+    #     anneal_strategy='cos'    # Cosine annealing
+    # )
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=1, threshold=0.001, threshold_mode='abs', eps=0.001, verbose=True)
 
     print("[STEP 3/5] Starting training and Testing...")
     start_time = time.time()
@@ -107,11 +110,12 @@ def train_and_test_model():
         print(f"[INFO] Training of Epoch {epoch+1} completed in {training_time:.2f} seconds")
         print("[INFO] Evaluating model...")
         # scheduler.step()
+        scheduler.step(train_accuracies[-1]*.01)
         print("Current learning rate:", scheduler.get_last_lr()[0])
         test_model(model, test_loader, device)
 
-    print("\n[STEP 4/5] Evaluating model against validation...")
-    test_model(model, validation_loader, device)
+    # print("\n[STEP 4/5] Evaluating model against validation...")
+    # test_model(model, validation_loader, device)
     
     # Save model with timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -123,19 +127,6 @@ def train_and_test_model():
     printLossAndAccuracy(train_losses, test_losses, train_accuracies, test_accuracies)
 
     return save_path
-
-def printSampleImages(dataset):
-    iter_data = iter(dataset)
-    image, label = next(iter_data)
-    plt.imshow(image.numpy().squeeze(), cmap='gray_r')
-
-    figure = plt.figure()
-    num_of_images = 60
-    for index in range(1, num_of_images + 1):
-        image, label = dataset[index]
-        plt.subplot(6, 10, index)
-        plt.axis('off')
-        plt.imshow(image.numpy().squeeze(), cmap='gray_r')
 
 def printLossAndAccuracy(train_losses, test_losses, train_accuracies, test_accuracies):
     fig, axs = plt.subplots(2,2,figsize=(15,10))
@@ -173,7 +164,7 @@ def train_model(model, train_loader, optimizer, scheduler, device, epoch):
         # Backpropagation (compute the gradient of the loss with respect to the model parameters and update the parameters)
         loss.backward()
         optimizer.step()
-        scheduler.step()
+        # scheduler.step()
 
         # Update running loss and accuracy
         running_loss += loss.item()

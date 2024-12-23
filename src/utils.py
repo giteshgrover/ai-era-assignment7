@@ -1,4 +1,5 @@
 import torch
+import matplotlib.pyplot as plt
 
 def get_device():
     SEED = 1 # Seed is to generate the same random data for each run
@@ -37,3 +38,16 @@ def transform_data_to_numpy(dataset, data):
     print(' - var:', torch.var(exp_data))
     
     return exp_data
+
+def printSampleImages(dataset):
+    iter_data = iter(dataset)
+    image, label = next(iter_data)
+    plt.imshow(image.numpy().squeeze(), cmap='gray_r')
+
+    figure = plt.figure()
+    num_of_images = 60
+    for index in range(1, num_of_images + 1):
+        image, label = dataset[index]
+        plt.subplot(6, 10, index)
+        plt.axis('off')
+        plt.imshow(image.numpy().squeeze(), cmap='gray_r')
