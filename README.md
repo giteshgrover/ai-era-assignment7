@@ -340,7 +340,7 @@ Test Accuracy: 99.44%
 
 [STEP 4/5] Evaluating model against validation...
 Test Accuracy: 99.50%
-
-![Graph Not Loaded](static/images/Accuracy-Graph.png?raw=true "Training and Testing Accuracy Graph")
 ```
+
+![plot](./static/images/Accuracy-Graph.png)
 
