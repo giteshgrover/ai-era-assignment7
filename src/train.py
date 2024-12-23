@@ -3,7 +3,11 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.optim.lr_scheduler import StepLR
 from torchvision import datasets, transforms
-from model import Model_1, Model_2, Model_3, Model_4, Model_5
+from models.Model_1 import Model_1
+from models.Model_2 import Model_2
+from models.Model_3 import Model_3
+from models.Model_4 import Model_4
+from models.Model_5 import Model_5
 from datetime import datetime
 from utils import get_device, transform_data_to_numpy, printSampleImages
 from torchsummary import summary

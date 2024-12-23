@@ -1,6 +1,6 @@
 import torch
 import pytest
-from src.model import Model_1,Model_2,Model_3,Model_4,Model_5
+from src.models.Model_5 import Model_5
 
 def test_model_architecture():
     model = Model_5()
